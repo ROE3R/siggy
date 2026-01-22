@@ -1161,6 +1161,9 @@
         showScreen('readyScreen');
         DOM.score.classList.remove('hidden');
         game.state = 'ready';
+    
+        // Enable mobile tap on ready screen
+        DOM.readyScreen.style.pointerEvents = 'auto';
     }
 
     function drawCatPreviewAnim(pc, pcan) {
