@@ -94,7 +94,11 @@
         .update-indicator { display: flex; align-items: center; gap: 6px; color: #40ff80; font-size: 0.7rem; margin-top: 10px; }
         .live-dot { width: 7px; height: 7px; background: #40ff80; border-radius: 50%; animation: livePulse 1.5s ease-in-out infinite; box-shadow: 0 0 8px rgba(64, 255, 128, 0.8); }
         @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .ready-overlay { background: rgba(5, 12, 8, 0.88); }
+        .ready-overlay { 
+        background: rgba(5, 12, 8, 0.88); 
+        pointer-events: auto;
+        cursor: pointer;
+        }
         .ready-text { font-size: clamp(1.2rem, 4.5vw, 1.6rem); color: #40ff80; animation: readyPulse 1s ease-in-out infinite; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 40px rgba(64, 255, 128, 0.8); }
         @keyframes readyPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
         .game-over-overlay { background: radial-gradient(ellipse at 50% 30%, rgba(25, 10, 15, 0.97) 0%, rgba(8, 5, 6, 0.99) 100%); }
