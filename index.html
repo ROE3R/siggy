@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Siggy Fly</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        body { display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #0a0a12 0%, #0d1018 50%, #0a0a12 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: manipulation; user-select: none; }
+        #gameContainer { position: relative; width: 100%; max-width: 420px; height: 100vh; height: 100dvh; max-height: 780px; overflow: hidden; box-shadow: 0 0 80px rgba(0, 255, 100, 0.15); border: 1px solid rgba(0, 255, 100, 0.1); }
+        @media (min-width: 768px) { #gameContainer { border-radius: 20px; } }
+        #gameCanvas { width: 100%; height: 100%; display: block; cursor: pointer; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; background: radial-gradient(ellipse at 50% 30%, rgba(10, 20, 15, 0.96) 0%, rgba(5, 8, 6, 0.99) 100%); overflow-y: auto; }
+        .hidden { display: none !important; }
+        .title { font-size: clamp(2.2rem, 10vw, 3rem); color: #40ff80; text-shadow: 0 0 50px rgba(64, 255, 128, 0.8), 0 0 100px rgba(0, 255, 80, 0.4); margin-bottom: 8px; text-align: center; letter-spacing: 5px; font-weight: 700; }
+        .title-small { font-size: clamp(1.4rem, 6vw, 1.8rem); }
+        .subtitle-container { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; }
+        .logo-circle { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #40ff80, #20cc60); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #0a1510; box-shadow: 0 0 15px rgba(64, 255, 128, 0.6); animation: logoPulse 2s ease-in-out infinite; }
+        @keyframes logoPulse { 0%, 100% { box-shadow: 0 0 15px rgba(64, 255, 128, 0.6); transform: scale(1); } 50% { box-shadow: 0 0 25px rgba(64, 255, 128, 0.9); transform: scale(1.05); } }
+        .subtitle { font-size: clamp(0.6rem, 2vw, 0.75rem); color: #70aa80; text-align: center; letter-spacing: 3px; text-transform: uppercase; font-weight: 400; }
+        .btn { padding: 15px 50px; font-size: clamp(0.9rem, 3vw, 1rem); background: linear-gradient(180deg, rgba(64, 255, 128, 0.12), rgba(32, 180, 80, 0.2)); color: #40ff80; border: 1px solid rgba(64, 255, 128, 0.35); border-radius: 50px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; font-family: inherit; letter-spacing: 4px; font-weight: 500; min-width: 170px; }
+        .btn:hover, .btn:active { background: linear-gradient(180deg, rgba(64, 255, 128, 0.2), rgba(32, 180, 80, 0.3)); box-shadow: 0 0 40px rgba(64, 255, 128, 0.4); transform: translateY(-2px); border-color: rgba(64, 255, 128, 0.6); }
+        .btn-secondary { background: linear-gradient(180deg, rgba(100, 100, 100, 0.08), rgba(60, 60, 60, 0.15)); color: #888; border-color: rgba(150, 150, 150, 0.2); }
+        .btn-secondary:hover { background: linear-gradient(180deg, rgba(100, 100, 100, 0.15), rgba(70, 70, 70, 0.25)); box-shadow: 0 0 25px rgba(150, 150, 150, 0.15); color: #aaa; }
+        .btn-small { padding: 11px 28px; font-size: clamp(0.75rem, 2.5vw, 0.85rem); min-width: 120px; }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
+        #score { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); font-size: clamp(2.5rem, 11vw, 3.5rem); color: #40ff80; text-shadow: 0 0 50px rgba(64, 255, 128, 0.8); z-index: 5; font-weight: 700; letter-spacing: 6px; }
+        .cat-icon { width: 120px; height: 120px; margin-bottom: 12px; }
+        .witch-canvas { width: 150px; height: 190px; margin-bottom: 5px; }
+        .insult { font-size: clamp(1.4rem, 5.5vw, 1.9rem); color: #ff4545; text-shadow: 0 0 35px rgba(255, 69, 69, 1); margin-bottom: 4px; text-align: center; animation: shake 0.15s ease-in-out infinite; text-transform: uppercase; letter-spacing: 4px; font-weight: 700; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+        .sub-insult { font-size: clamp(0.7rem, 2.5vw, 0.85rem); color: #aa6666; margin-bottom: 12px; text-align: center; font-style: italic; max-width: 90%; }
+        .score-label { color: #555; font-size: clamp(0.65rem, 2vw, 0.75rem); letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
+        .finalScore { font-size: clamp(3.8rem, 15vw, 5.5rem); color: #ff5555; text-shadow: 0 0 50px rgba(255, 85, 85, 1); margin: 4px 0 12px; animation: pulse 1s ease-in-out infinite; font-weight: 700; letter-spacing: 6px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+        .instructions { color: #506050; font-size: clamp(0.7rem, 2.2vw, 0.8rem); margin-top: 22px; text-align: center; letter-spacing: 2px; }
+        .author-section { margin-top: 25px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .author-label { font-size: 0.65rem; color: #404540; letter-spacing: 3px; text-transform: uppercase; }
+        .author-links { display: flex; gap: 10px; align-items: center; }
+        .author-link { display: flex; align-items: center; gap: 5px; padding: 7px 14px; background: rgba(64, 255, 128, 0.05); border: 1px solid rgba(64, 255, 128, 0.12); border-radius: 18px; color: #50aa70; text-decoration: none; font-size: 0.75rem; transition: all 0.3s ease; cursor: pointer; }
+        .author-link:hover { background: rgba(64, 255, 128, 0.1); border-color: rgba(64, 255, 128, 0.3); color: #40ff80; }
+        .author-link svg { width: 13px; height: 13px; fill: currentColor; }
+        .decorative-line { width: 130px; height: 1px; background: linear-gradient(90deg, transparent, rgba(64, 255, 128, 0.4), transparent); margin: 12px 0; }
+        .input-container { width: 100%; max-width: 260px; margin: 18px 0; }
+        .name-input { width: 100%; padding: 13px 18px; font-size: 1rem; background: rgba(64, 255, 128, 0.05); border: 1px solid rgba(64, 255, 128, 0.25); border-radius: 28px; color: #40ff80; text-align: center; font-family: inherit; letter-spacing: 2px; outline: none; transition: all 0.3s ease; }
+        .name-input::placeholder { color: rgba(64, 255, 128, 0.3); }
+        .name-input:focus { border-color: rgba(64, 255, 128, 0.5); box-shadow: 0 0 25px rgba(64, 255, 128, 0.15); }
+        .name-input.error { border-color: rgba(255, 80, 80, 0.5); animation: inputShake 0.3s ease; }
+        @keyframes inputShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .error-message { color: #ff6060; font-size: 0.75rem; margin-top: 8px; text-align: center; min-height: 18px; }
+        .player-name-display { color: #40ff80; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 6px; text-shadow: 0 0 15px rgba(64, 255, 128, 0.5); }
+        .leaderboard-container { width: 100%; max-width: 300px; max-height: 48vh; overflow-y: auto; margin: 12px 0; padding: 0 4px; }
+        .leaderboard-container::-webkit-scrollbar { width: 4px; }
+        .leaderboard-container::-webkit-scrollbar-thumb { background: rgba(64, 255, 128, 0.3); border-radius: 2px; }
+        .leaderboard-item { display: flex; align-items: center; padding: 10px 14px; margin: 6px 0; background: rgba(64, 255, 128, 0.03); border: 1px solid rgba(64, 255, 128, 0.08); border-radius: 12px; transition: all 0.3s ease; }
+        .leaderboard-item.current-player { background: rgba(64, 255, 128, 0.1); border-color: rgba(64, 255, 128, 0.4); }
+        .leaderboard-item.top-1 { background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(255, 180, 0, 0.06)); border-color: rgba(255, 215, 0, 0.4); }
+        .leaderboard-item.top-2 { background: linear-gradient(135deg, rgba(192, 192, 192, 0.08), rgba(150, 150, 150, 0.04)); border-color: rgba(192, 192, 192, 0.3); }
+        .leaderboard-item.top-3 { background: linear-gradient(135deg, rgba(205, 127, 50, 0.08), rgba(180, 100, 30, 0.04)); border-color: rgba(205, 127, 50, 0.3); }
+        .rank { font-size: 1.1rem; font-weight: 700; width: 38px; text-align: center; }
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        .rank-default { color: #666; }
+        .player-info { flex: 1; margin-left: 10px; }
+        .player-name { font-size: 0.9rem; color: #aaa; letter-spacing: 1px; }
+        .player-name.current { color: #40ff80; }
+        .player-score { font-size: 1.05rem; color: #40ff80; font-weight: 600; letter-spacing: 2px; }
+        .leaderboard-header { display: flex; justify-content: space-between; padding: 8px 14px; color: #455045; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid rgba(64, 255, 128, 0.1); margin-bottom: 6px; }
+        .update-indicator { display: flex; align-items: center; gap: 6px; color: #40ff80; font-size: 0.7rem; margin-top: 10px; }
+        .live-dot { width: 7px; height: 7px; background: #40ff80; border-radius: 50%; animation: livePulse 1.5s ease-in-out infinite; box-shadow: 0 0 8px rgba(64, 255, 128, 0.8); }
+        @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .ready-overlay { background: rgba(5, 12, 8, 0.88); }
+        .ready-text { font-size: clamp(1.2rem, 4.5vw, 1.6rem); color: #40ff80; animation: readyPulse 1s ease-in-out infinite; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 40px rgba(64, 255, 128, 0.8); }
+        @keyframes readyPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
+        .game-over-overlay { background: radial-gradient(ellipse at 50% 30%, rgba(25, 10, 15, 0.97) 0%, rgba(8, 5, 6, 0.99) 100%); }
+        .new-record { color: #40ff80; font-size: 0.9rem; animation: recordGlow 0.4s ease-in-out infinite; margin-bottom: 6px; }
+        @keyframes recordGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .rank-change { font-size: 0.75rem; color: #50aa70; margin-top: 6px; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 8, 6, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; }
+        .loading-text { color: #40ff80; font-size: 1.2rem; margin-top: 15px; letter-spacing: 3px; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="score" class="hidden">0</div>
+        
+        <div id="loadingScreen" class="loading-overlay">
+            <div class="logo-circle" style="width: 50px; height: 50px; font-size: 28px;">S</div>
+            <div class="loading-text">Loading...</div>
+        </div>
+        
+        <div id="menuScreen" class="overlay hidden">
+            <canvas id="catPreview" class="cat-icon"></canvas>
+            <h1 class="title">Siggy Fly</h1>
+            <div class="subtitle-container">
+                <div class="logo-circle">S</div>
+                <p class="subtitle">Siggy Wants To Go Home</p>
+                <div class="logo-circle">S</div>
+            </div>
+            <div class="decorative-line"></div>
+            <div class="btn-group" style="flex-direction: column; gap: 10px;">
+                <button class="btn" id="playBtn">Play</button>
+                <button class="btn btn-secondary" id="leaderboardBtn">Leaderboard</button>
+            </div>
+            <p class="instructions">Tap or Press Space to Fly</p>
+            <div class="author-section">
+                <span class="author-label">Created by</span>
+                <div class="author-links">
+                    <a href="https://x.com/0xrikk" target="_blank" class="author-link">
+                        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        <span>0xrikk</span>
+                    </a>
+                    <div class="author-link">
+                        <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        <span>990rr</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="nameScreen" class="overlay hidden">
+            <canvas id="catPreview2" class="cat-icon"></canvas>
+            <h1 class="title title-small">Enter Name</h1>
+            <div class="subtitle-container">
+                <div class="logo-circle">S</div>
+                <p class="subtitle">Choose Your Identity</p>
+                <div class="logo-circle">S</div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="nameInput" class="name-input" placeholder="Your name..." maxlength="12" autocomplete="off">
+                <p class="error-message" id="nameError"></p>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary btn-small" id="backToMenuBtn">Back</button>
+                <button class="btn btn-small" id="confirmNameBtn">Continue</button>
+            </div>
+        </div>
+        
+        <div id="leaderboardScreen" class="overlay hidden">
+            <h1 class="title title-small">Leaderboard</h1>
+            <div class="subtitle-container">
+                <div class="logo-circle">S</div>
+                <p class="subtitle">Top Siggy Flyers</p>
+                <div class="logo-circle">S</div>
+            </div>
+            <div class="decorative-line"></div>
+            <div class="leaderboard-header"><span>Rank / Player</span><span>Score</span></div>
+            <div class="leaderboard-container" id="leaderboardList"></div>
+            <div class="update-indicator"><div class="live-dot"></div><span>Live</span></div>
+            <button class="btn btn-secondary btn-small" id="backFromLeaderboardBtn" style="margin-top: 15px;">Back</button>
+        </div>
+        
+        <div id="gameOverScreen" class="overlay game-over-overlay hidden">
+            <canvas id="witchCanvas" class="witch-canvas"></canvas>
+            <div class="insult" id="insultText">LOSER!</div>
+            <div class="sub-insult" id="subInsult">Pathetic...</div>
+            <p class="player-name-display" id="playerNameDisplay"></p>
+            <p class="score-label">Score</p>
+            <div class="finalScore" id="finalScore">0</div>
+            <p class="new-record hidden" id="newRecord">✦ New Best! ✦</p>
+            <p class="rank-change" id="rankDisplay"></p>
+            <div class="btn-group">
+                <button class="btn btn-secondary btn-small" id="menuBtn">Menu</button>
+                <button class="btn btn-small" id="restartBtn">Retry</button>
+            </div>
+            <button class="btn btn-secondary btn-small" id="viewLeaderboardBtn" style="margin-top: 10px;">Leaderboard</button>
+        </div>
+
+        <div id="readyScreen" class="overlay ready-overlay hidden">
+            <p class="player-name-display" id="readyPlayerName"></p>
+            <div class="ready-text">Tap to Fly</div>
+        </div>
+    </div>
+
+<script src="game.js"></script>
+</body>
+</html>
