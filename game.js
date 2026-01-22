@@ -1251,7 +1251,7 @@
         goToLeaderboard(); 
     });
     
-    document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function(e) {
         if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
             e.preventDefault();
             if (game.state === 'ready' || game.state === 'playing') jump();
@@ -1262,14 +1262,34 @@
         }
     });
     
+    // Desktop click
     canvas.addEventListener('mousedown', function(e) { 
         e.preventDefault(); 
         jump(); 
     });
+    
+    // Mobile touch - canvas
     canvas.addEventListener('touchstart', function(e) { 
         e.preventDefault(); 
         jump(); 
     }, { passive: false });
+    
+    // Mobile touch - container (backup)
+    container.addEventListener('touchstart', function(e) { 
+        if (game.state === 'ready' || game.state === 'playing') {
+            e.preventDefault(); 
+            jump(); 
+        }
+    }, { passive: false });
+    
+    // Mobile touch - ready screen
+    DOM.readyScreen.addEventListener('touchstart', function(e) { 
+        if (game.state === 'ready') {
+            e.preventDefault(); 
+            jump(); 
+        }
+    }, { passive: false });
+    
     canvas.addEventListener('contextmenu', function(e) { 
         e.preventDefault(); 
     });
